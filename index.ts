@@ -1,25 +1,32 @@
 import { interval, of, zip } from 'rxjs'; 
-import { concatMap, delay,  distinctUntilChanged, catchError, map } from 'rxjs/operators';
+import { concatMap, delay, map } from 'rxjs/operators';
 
-const incomingValues = of({key:1, name: 'one'}, {key:3, name: 'three'}, {key:6, name: 'three'}, {key:7, name: 'three'}, {key:2, name: 'two'}, {key:4, name: 'four'});
+// Zip merges two observables into an array that emits when both observables have emitted values. 
 
-const source = incomingValues.pipe(
-  distinctUntilChanged((value, val) => value.name === val.name),
-  concatMap(x => of(`Hello ${x.name}!`).pipe(delay(1000))),
-  catchError((error) => {
-    console.log('IN error');
-    return of(error);
-  })
-);
+const zipIncomingValues = of(
+  {key:1, name: 'one', source:'zip'}, 
+  {key:2, name: 'two', source:'zip'}, 
+  {key:3, name: 'three', source:'zip'}, 
+  {key:4, name: 'four', source:'zip'}, 
+  {key:5, name: 'five', source:'zip'}, 
+  {key:6, name: 'six', source:'zip'});
 
-//source.subscribe(console.log, console.log, console.log);
+const testZip = zip(zipIncomingValues, interval(1000)).pipe(map((value) => value[0]));
 
-const testZip = zip(incomingValues, interval(1000)).pipe(map((value) => value[0]));
+testZip.subscribe(console.log);
 
-testZip.subscribe(console.log, console.log, console.log);
+// this method uses concatMap to merge the source observable with an interval observable. //ConcatMap waits for both the source and the inner observable (in this case the interval) to //complete before moving to the next value on the source observable.
 
-const testConcatMap = incomingValues.pipe(
+const concatMapIncomingValues = of(
+  {key:1, name: 'one', source:'concat'}, 
+  {key:2, name: 'two', source:'concat'}, 
+  {key:3, name: 'three', source:'concat'}, 
+  {key:4, name: 'four', source:'concat'}, 
+  {key:5, name: 'five', source:'concat'}, 
+  {key:6, name: 'six', source:'concat'});
+
+const testConcatMap = concatMapIncomingValues.pipe(
   concatMap((value) => of(value).pipe(delay(1000)))
 );
 
-testConcatMap.subscribe(console.log, console.log, console.log);
+testConcatMap.subscribe(console.log);
