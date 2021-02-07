@@ -1,34 +1,71 @@
-import { interval, of, zip } from 'rxjs'; 
-import { concatMap, delay, map } from 'rxjs/operators';
+import { interval, of, Subject, zip } from "rxjs";
+import { concatMap, delay, map, take, tap } from "rxjs/operators";
 
-// Zip merges two observables into an array that emits when both observables have emitted values. 
+// Delay puts a delay on each incoming value but does not delay the reading of the incoming values. The result is that it looks like the delay is only at the beginning of the subscription.
 
-const zipValues = of(
-  {key:1, name: 'one', source:'zip'}, 
-  {key:2, name: 'two', source:'zip'}, 
-  {key:3, name: 'three', source:'zip'}, 
-  {key:4, name: 'four', source:'zip'}, 
-  {key:5, name: 'five', source:'zip'}, 
-  {key:6, name: 'six', source:'zip'});
-
-const testZip = zip(zipValues, interval(1000)).pipe(
-  map((value) => value[0])
+const delayValues = of(
+  { key: 1, source: "delay" },
+  { key: 2, source: "delay" },
+  { key: 3, source: "delay" },
+  { key: 4, source: "delay" },
+  { key: 5, source: "delay" },
+  { key: 6, source: "delay" }
 );
 
-testZip.subscribe(console.log);
+const testDelay = delayValues.pipe(delay(1000));
+
+const subscribeTestDelay = () => testDelay.subscribe(console.log);
+
+// Spacing out the values coming in from the source observable illustrates that the delay is applied to each value, but on the outgoing end of the value.
+
+const valueSubject = new Subject();
+
+let index = 0;
+
+const passValue = () => {
+  index++;
+  valueSubject.next({ key: index, source: "delaySpaced" });
+};
+
+setInterval(passValue, 500);
+
+const testDelaySpace = valueSubject.pipe(
+  take(6),
+  tap((value: { key; source }) => console.log("ENTER", value.key)),
+  delay(1000),
+  tap(value => console.log("LEAVE", value.key))
+);
+
+const subscribeTestDelaySpaced = () => testDelaySpace.subscribe(console.log);
+
+// Zip merges two observables into an array that emits when both observables have emitted values.
+
+const zipValues = of(
+  { key: 1, source: "zip" },
+  { key: 2, source: "zip" },
+  { key: 3, source: "zip" },
+  { key: 4, source: "zip" },
+  { key: 5, source: "zip" },
+  { key: 6, source: "zip" }
+);
+
+const testZip = zip(zipValues, interval(1000)).pipe(map(value => value[0]));
+
+const subscribeTestZip = () => testZip.subscribe(console.log);
 
 // this method uses concatMap to merge the source observable with an interval observable. //ConcatMap waits for both the source and the inner observable (in this case the interval) to //complete before moving to the next value on the source observable.
 
 const concatValues = of(
-  {key:1, name: 'one', source:'concat'}, 
-  {key:2, name: 'two', source:'concat'}, 
-  {key:3, name: 'three', source:'concat'}, 
-  {key:4, name: 'four', source:'concat'}, 
-  {key:5, name: 'five', source:'concat'}, 
-  {key:6, name: 'six', source:'concat'});
-
-const testConcatMap = concatValues.pipe(
-  concatMap((value) => of(value).pipe(delay(1000)))
+  { key: 1, source: "concat" },
+  { key: 2, source: "concat" },
+  { key: 3, source: "concat" },
+  { key: 4, source: "concat" },
+  { key: 5, source: "concat" },
+  { key: 6, source: "concat" }
 );
 
-testConcatMap.subscribe(console.log);
+const testConcatMap = concatValues.pipe(
+  concatMap(value => of(value).pipe(delay(1000)))
+);
+
+const subscribeTestConcat = () => testConcatMap.subscribe(console.log);
