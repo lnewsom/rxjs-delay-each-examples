@@ -3,7 +3,7 @@ import { concatMap, delay, map } from 'rxjs/operators';
 
 // Zip merges two observables into an array that emits when both observables have emitted values. 
 
-const zipIncomingValues = of(
+const zipValues = of(
   {key:1, name: 'one', source:'zip'}, 
   {key:2, name: 'two', source:'zip'}, 
   {key:3, name: 'three', source:'zip'}, 
@@ -11,13 +11,15 @@ const zipIncomingValues = of(
   {key:5, name: 'five', source:'zip'}, 
   {key:6, name: 'six', source:'zip'});
 
-const testZip = zip(zipIncomingValues, interval(1000)).pipe(map((value) => value[0]));
+const testZip = zip(zipValues, interval(1000)).pipe(
+  map((value) => value[0])
+);
 
 testZip.subscribe(console.log);
 
 // this method uses concatMap to merge the source observable with an interval observable. //ConcatMap waits for both the source and the inner observable (in this case the interval) to //complete before moving to the next value on the source observable.
 
-const concatMapIncomingValues = of(
+const concatValues = of(
   {key:1, name: 'one', source:'concat'}, 
   {key:2, name: 'two', source:'concat'}, 
   {key:3, name: 'three', source:'concat'}, 
@@ -25,7 +27,7 @@ const concatMapIncomingValues = of(
   {key:5, name: 'five', source:'concat'}, 
   {key:6, name: 'six', source:'concat'});
 
-const testConcatMap = concatMapIncomingValues.pipe(
+const testConcatMap = concatValues.pipe(
   concatMap((value) => of(value).pipe(delay(1000)))
 );
 
