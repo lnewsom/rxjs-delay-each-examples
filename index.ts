@@ -16,7 +16,7 @@ const testDelay = delayValues.pipe(delay(1000));
 
 testDelay.subscribe(console.log);
 
-// Spacing out the values coming in from the source observable illustrates that the delay is applied to each value, but on the outgoing end of the value.
+// Spacing out the values coming in from the source observable illustrates that the delay is applied to each value on the outgoing end of the value.
 
 const valueSubject = new Subject();
 
